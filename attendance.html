@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KLE BCA Attendance Portal</title>
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- External Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+  
+  <style>
+    body {            
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .main-container {
+      padding: 2rem 0;
+    }
+    
+    .college-header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    }
+    
+    .year-selection {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 3rem;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    }
+    
+    .year-btn {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      border: none;
+      padding: 1.5rem 3rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .year-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .attendance-section {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    }
+    
+    .student-card {
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .student-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transition: left 0.5s;
+    }
+    
+    .student-card:hover::before {
+      left: 100%;
+    }
+    
+    .student-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .student-card.present {
+      background: linear-gradient(135deg, #d4edda, #c3e6cb);
+      border-color: #28a745;
+      color: #155724;
+    }
+    
+    .student-card.absent {
+      background: linear-gradient(135deg, #f8d7da, #f1b0b7);
+      border-color: #dc3545;
+      color: #721c24;
+    }
+    
+    .student-card.neutral {
+      background: linear-gradient(135deg, #e2e3e5, #d1d3d4);
+      border-color: #6c757d;
+      color: #495057;
+    }
+    
+    .remove-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: #dc3545;
+      color: white;
+      border: none;
+      font-size: 12px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .student-card:hover .remove-btn {
+      display: flex;
+    }
+    
+    .stats-card {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .export-btn {
+      background: linear-gradient(45deg, #28a745, #20c997);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .export-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .form-control:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      border: none;
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    /* Base Styles */
+body {            
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.main-container {
+  padding: 1rem;
+}
+
+/* Header Styles */
+.college-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+  text-align: center;
+}
+
+.college-header h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.college-header img {
+  height: 150px;
+  width: auto;
+  max-width: 100%;
+}
+
+.college-header p {
+  font-size: 1rem;
+  margin-bottom: 0;
+}
+
+/* Year Selection */
+.year-selection {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+
+.year-btn {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.year-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Attendance Section */
+.attendance-section {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+
+/* Header Controls */
+.attendance-header {
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.attendance-header h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.bulk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.bulk-actions .btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* Form Controls */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 8px;
+}
+
+.form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-group-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.btn-group-responsive .btn {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+}
+
+/* Student Cards */
+.student-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  min-height: 120px;
+}
+
+.student-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.student-card:hover::before {
+  left: 100%;
+}
+
+.student-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.student-card.present {
+  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  border-color: #28a745;
+  color: #155724;
+}
+
+.student-card.absent {
+  background: linear-gradient(135deg, #f8d7da, #f1b0b7);
+  border-color: #dc3545;
+  color: #721c24;
+}
+
+.student-card.neutral {
+  background: linear-gradient(135deg, #e2e3e5, #d1d3d4);
+  border-color: #6c757d;
+  color: #495057;
+}
+
+.student-card .card-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+.student-card .card-body strong {
+  font-size: 1rem;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+.student-card .text-muted {
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.student-card .badge {
+  font-size: 0.75rem;
+  padding: 0.4rem 0.8rem;
+}
+
+/* Remove Button */
+.remove-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #dc3545;
+  color: white;
+  border: none;
+  font-size: 14px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.student-card:hover .remove-btn {
+  display: flex;
+}
+
+/* Statistics Cards */
+.stats-card {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  margin-bottom: 1rem;
+}
+
+.stats-card h3 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.stats-card small {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+/* Export Buttons */
+.export-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.export-btn {
+  background: linear-gradient(45deg, #28a745, #20c997);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+}
+
+.export-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* Alert Positioning */
+.alert-responsive {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  min-width: 300px;
+  max-width: 90vw;
+}
+
+/* Modal Responsiveness */
+.modal-dialog {
+  margin: 1rem;
+  max-width: calc(100vw - 2rem);
+}
+
+.modal-content {
+  border-radius: 15px;
+}
+
+/* Tablet Styles (768px and up) */
+@media (min-width: 768px) {
+  .main-container {
+    padding: 2rem;
+  }
+  
+  .college-header {
+    padding: 2rem;
+  }
+  
+  .college-header h1 {
+    font-size: 2.5rem;
+  }
+  
+  .college-header img {
+    height: 200px;
+  }
+  
+  .year-selection {
+    padding: 3rem;
+  }
+  
+  .year-btn {
+    padding: 1.5rem 3rem;
+    font-size: 1.2rem;
+    width: auto;
+  }
+  
+  .attendance-section {
+    padding: 2rem;
+  }
+  
+  .attendance-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .attendance-header h2 {
+    font-size: 2rem;
+    margin-bottom: 0;
+  }
+  
+  .bulk-actions {
+    justify-content: flex-end;
+    width: auto;
+  }
+  
+  .bulk-actions .btn {
+    flex: none;
+    width: auto;
+  }
+  
+  .form-row {
+    flex-direction: row;
+    align-items: end;
+  }
+  
+  .form-group {
+    flex: 1;
+    margin-right: 1rem;
+  }
+  
+  .form-group:last-child {
+    margin-right: 0;
+  }
+  
+  .btn-group-responsive {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .btn-group-responsive .btn {
+    width: auto;
+    margin-left: 0.5rem;
+  }
+  
+  .student-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .export-section {
+    flex-direction: row;
+    justify-content: center;
+  }
+  
+  .export-btn {
+    width: auto;
+    margin: 0 0.5rem;
+  }
+  
+  .alert-responsive {
+    right: 20px;
+    left: auto;
+    transform: none;
+    max-width: 400px;
+  }
+}
+
+/* Desktop Styles (992px and up) */
+@media (min-width: 992px) {
+  .college-header h1 {
+    font-size: 3rem;
+  }
+  
+  .college-header p {
+    font-size: 1.2rem;
+  }
+  
+  .student-card .card-body strong {
+    font-size: 1.1rem;
+  }
+  
+  .student-card .text-muted {
+    font-size: 0.9rem;
+  }
+  
+  .stats-card h3 {
+    font-size: 2.5rem;
+  }
+}
+
+/* Large Desktop Styles (1200px and up) */
+@media (min-width: 1200px) {
+  .main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+/* Extra Small Devices (up to 576px) */
+@media (max-width: 575.98px) {
+  .main-container {
+    padding: 0.5rem;
+  }
+  
+  .college-header {
+    padding: 1rem;
+    border-radius: 15px;
+  }
+  
+  .college-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .college-header img {
+    height: 100px;
+  }
+  
+  .year-selection {
+    padding: 1.5rem;
+    border-radius: 15px;
+  }
+  
+  .attendance-section {
+    padding: 1rem;
+    border-radius: 15px;
+  }
+  
+  .attendance-header h2 {
+    font-size: 1.25rem;
+  }
+  
+  .bulk-actions {
+    flex-direction: column;
+  }
+  
+  .bulk-actions .btn {
+    min-width: 100%;
+    font-size: 0.85rem;
+    padding: 0.6rem;
+  }
+  
+  .card {
+    border-radius: 10px;
+  }
+  
+  .card-header {
+    padding: 0.75rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .btn-group-responsive .btn {
+    font-size: 0.8rem;
+    padding: 0.6rem;
+  }
+  
+  .stats-card {
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .stats-card h3 {
+    font-size: 1.5rem;
+  }
+  
+  .student-card {
+    min-height: 100px;
+  }
+  
+  .student-card .card-body {
+    padding: 0.75rem;
+  }
+  
+  .student-card .card-body strong {
+    font-size: 0.9rem;
+  }
+  
+  .student-card .text-muted {
+    font-size: 0.8rem;
+  }
+  
+  .student-card .badge {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+  }
+  
+  .remove-btn {
+    width: 25px;
+    height: 25px;
+    font-size: 12px;
+  }
+  
+  .export-btn {
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+  }
+  
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+  
+  .modal-content .modal-body {
+    padding: 1rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .college-header,
+  .attendance-section {
+    background: white !important;
+    box-shadow: none !important;
+    border: 1px solid #ddd;
+  }
+  
+  .btn,
+  .remove-btn,
+  .export-section {
+    display: none !important;
+  }
+  
+  .student-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .stats-card {
+    background: #f8f9fa !important;
+    color: black !important;
+    border: 1px solid #ddd;
+  }
+}
+
+/* Landscape Orientation for Mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .college-header {
+    padding: 1rem;
+  }
+  
+  .college-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .college-header img {
+    height: 80px;
+  }
+  
+  .year-selection,
+  .attendance-section {
+    padding: 1rem;
+  }
+}
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container main-container">
+    <!-- Header -->
+    <div class="college-header text-center fade-in">
+      <h1 class="display-4 fw-bold text-primary mb-2">
+        <i class=" me-3"></i>
+        <img src="./K_L_E_Society_s2-removebg-preview.png" height="200px"/>
+        KLE Society's BCA College
+      </h1>
+      <p class="lead text-muted">Gangavathi - Attendance Management System</p>
+      <h1><button class="btn btn-info">designed by AKASH OOTI</button></h1>
+    </div>
+
+    <!-- Year Selection -->
+    <div id="year-selection" class="year-selection text-center fade-in">
+      <h2 class="mb-4 text-dark">Select Academic Year</h2>
+      <div class="row justify-content-center">
+        <div class="col-md-4 mb-3">
+          <button class="btn year-btn text-white w-100" onclick="showYear('bca1')">
+            <i class="bi bi-1-circle-fill me-2"></i>
+            BCA 1st Year
+          </button>
+        </div>
+        <div class="col-md-4 mb-3">
+          <button class="btn year-btn text-white w-100" onclick="showYear('bca2')">
+            <i class="bi bi-2-circle-fill me-2"></i>
+            BCA 2nd Year
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BCA 1st Year Section -->
+    <div id="bca1" class="attendance-section" style="display: none;">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-outline-primary" onclick="goBack()">
+          <i class="bi bi-arrow-left me-2"></i>Back
+        </button>
+        <h2 class="text-center flex-grow-1 mb-0">
+          <i class="bi-2-circle-fill me-2"></i>BCA 1st Year Attendance
+        </h2>
+        <div class="text-center my-3">
+    <button class="btn btn-success me-2" onclick="markAll('bca1', 'present')">Mark All Present</button>
+    <button class="btn btn-danger me-2" onclick="markAll('bca1', 'absent')">Mark All Absent</button>
+    <button class="btn btn-secondary" onclick="markAll('bca1', 'neutral')">Reset All</button>
+  </div>
+      </div>
+
+      <!-- Add Student Form -->
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Add Student</h5>
+        </div>
+        <div class="card-body">
+         <div class="row">
+  <div class="col-md-2 mb-3">
+    <label class="form-label">Date</label>
+    <input type="date" class="form-control" id="bca1-date" onchange="onDateChange('bca1')">
+  </div>
+  <div class="col-md-3 mb-3">
+    <label class="form-label">Student Name</label>
+    <input type="text" class="form-control" placeholder="Enter student name" id="bca1-name">
+
+  </div>
+  <div class="col-md-2 mb-3">
+    <label class="form-label">USN</label>
+    <input type="text" class="form-control" placeholder="Enter USN" id="bca1-usn">
+  </div>
+  <div class="col-md-1 mb-3 d-flex align-items-end">
+    <button class="btn btn-primary w-100" onclick="addStudent('bca1')">
+      <i class="bi bi-plus-circle me-1"></i>Add
+    </button>
+  </div>
+  <div class="col-md-2 mb-3 d-flex align-items-end">
+    <button type="button" class="btn btn-success w-100" onclick="saveAttendanceData('bca1')" title="Save current attendance">
+      <i class="bi bi-floppy me-1"></i>Save
+    </button>
+  </div>
+  <div class="col-md-1 mb-3 d-flex align-items-end">
+    <button type="button" class="btn btn-info w-100" onclick="showSavedDates('bca1')" title="Load saved attendance">
+      <i class="bi bi-folder-open me-1"></i>Load
+    </button>
+  </div>
+  <div class="col-md-1 mb-3 d-flex align-items-end">
+    <button type="button" class="btn btn-danger w-100" onclick="deleteAttendanceData('bca1')" title="Delete saved data">
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+</div>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="stats-card">
+            <h3 class="mb-1" id="bca1-total">0</h3>
+            <small>Total Students</small>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card bg-success">
+            <h3 class="mb-1" id="bca1-present">0</h3>
+            <small>Present</small>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card bg-danger">
+            <h3 class="mb-1" id="bca1-absent">0</h3>
+            <small>Absent</small>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card bg-warning">
+            <h3 class="mb-1" id="bca1-percentage">0%</h3>
+            <small>Attendance</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Students List -->
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Students List</h5>
+          <small class="text-muted">Click on cards to mark attendance</small>
+        </div>
+        <div class="card-body">
+          <div id="bca1-students" class="row"></div>
+        </div>
+      </div>
+
+      <!-- Export Buttons -->
+      <div class="text-center">
+        <button class="btn export-btn text-white me-3" onclick="exportExcel('bca1')">
+          <i class="bi bi-file-earmark-excel me-2"></i>Export to Excel
+        </button>
+        <button class="btn export-btn text-white" onclick="exportPDF('bca1')">
+          <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- BCA 2nd Year Section -->
+    
+ <div id="bca2" class="attendance-section" style="display: none;">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-outline-primary" onclick="goBack()">
+          <i class="bi bi-arrow-left me-2"></i>Back
+        </button>
+        <h2 class="text-center flex-grow-1 mb-0">
+          <i class="bi-2-circle-fill me-2"></i>BCA 2nd Year Attendance
+        </h2>
+        <div class="text-center my-3">
+    <button class="btn btn-success me-2" onclick="markAll('bca2', 'present')">Mark All Present</button>
+    <button class="btn btn-danger me-2" onclick="markAll('bca2', 'absent')">Mark All Absent</button>
+    <button class="btn btn-secondary" onclick="markAll('bca2', 'neutral')">Reset All</button>
+  </div>
+      </div>
+
+      <!-- Add Student Form -->
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Add Student</h5>
+        </div>
+        <div class="card-body">
+         <div class="row">
+  <div class="col-md-2 mb-3">
+    <label class="form-label">Date</label>
+    <input type="date" class="form-control" id="bca2-date" onchange="onDateChange('bca2')">
+  </div>
+  <div class="col-md-3 mb-3">
+    <label class="form-label">Student Name</label>
+    <input type="text" class="form-control" placeholder="Enter student name" id="bca2-name">
+
+  </div>
+  <div class="col-md-2 mb-3">
+    <label class="form-label">USN</label>
+    <input type="text" class="form-control" placeholder="Enter USN" id="bca2-usn">
+  </div>
+  <div class="col-md-1 mb-3 d-flex align-items-end">
+    <button class="btn btn-primary w-100" onclick="addStudent('bca2')">
+      <i class="bi bi-plus-circle me-1"></i>Add
+    </button>
+  </div>
+  <div class="col-md-2 mb-3 d-flex align-items-end">
+    <button type="button" class="btn btn-success w-100" onclick="saveAttendanceData('bca2')" title="Save current attendance">
+      <i class="bi bi-floppy me-1"></i>Save
+    </button>
+  </div>
+  <div class="col-md-1 mb-3 d-flex align-items-end">
+    <button type="button" class="btn btn-info w-100" onclick="showSavedDates('bca2')" title="Load saved attendance">
+      <i class="bi bi-folder-open me-1"></i>Load
+    </button>
+  </div>
+  <div class="col-md-1 mb-3 d-flex align-items-end">
+    <button type="button" class="btn btn-danger w-100" onclick="deleteAttendanceData('bca2')" title="Delete saved data">
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+</div>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="stats-card">
+            <h3 class="mb-1" id="bca2-total">0</h3>
+            <small>Total Students</small>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card bg-success">
+            <h3 class="mb-1" id="bca2-present">0</h3>
+            <small>Present</small>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card bg-danger">
+            <h3 class="mb-1" id="bca2-absent">0</h3>
+            <small>Absent</small>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card bg-warning">
+            <h3 class="mb-1" id="bca2-percentage">0%</h3>
+            <small>Attendance</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Students List -->
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Students List</h5>
+          <small class="text-muted">Click on cards to mark attendance</small>
+        </div>
+        <div class="card-body">
+          <div id="bca2-students" class="row"></div>
+        </div>
+      </div>
+
+      <!-- Export Buttons -->
+      <div class="text-center">
+        <button class="btn export-btn text-white me-3" onclick="exportExcel('bca2')">
+          <i class="bi bi-file-earmark-excel me-2"></i>Export to Excel
+        </button>
+        <button class="btn export-btn text-white" onclick="exportPDF('bca2')">
+          <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
+        </button>
+      </div>
+    </div>
+
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmMessage">Are you sure you want to delete this student?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script>
+    // Global variables for confirmation modal
+    let studentToDelete = null;
+    let yearToDelete = null;
+
+    function showYear(year) {
+      document.getElementById('year-selection').style.display = 'none';
+      document.getElementById(year).style.display = 'block';
+      document.getElementById(year).classList.add('fade-in');
+      // Set today's date by default
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById(`${year}-date`).value = today;
+    }
+
+    function goBack() {
+      document.querySelectorAll('.attendance-section').forEach(section => {
+        section.style.display = 'none';
+        section.classList.remove('fade-in');
+      });
+      document.getElementById('year-selection').style.display = 'block';
+    }
+
+    function addStudent(year) {
+      const name = document.getElementById(`${year}-name`).value.trim();
+      const usn = document.getElementById(`${year}-usn`).value.trim().toUpperCase();
+      
+      if (!name || !usn) {
+        showAlert("Please enter both student name and USN", "warning");
+        return;
+      }
+
+      const list = JSON.parse(localStorage.getItem(`${year}-list`) || '[]');
+      
+      // Check for duplicate USN
+      if (list.some(student => student.usn === usn)) {
+        showAlert("A student with this USN already exists!", "danger");
+        return;
+      }
+
+      list.push({ name, usn });
+      localStorage.setItem(`${year}-list`, JSON.stringify(list));
+      renderList(year);
+      updateStats(year);
+      
+      // Clear inputs
+      document.getElementById(`${year}-name`).value = '';
+      document.getElementById(`${year}-usn`).value = '';
+      
+      showAlert("Student added successfully!", "success");
+    }
+
+    function removeStudent(year, index) {
+      const list = JSON.parse(localStorage.getItem(`${year}-list`) || '[]');
+      const student = list[index];
+      
+      document.getElementById('confirmMessage').textContent = 
+        `Are you sure you want to remove ${student.name} (${student.usn})?`;
+      
+      studentToDelete = index;
+      yearToDelete = year;
+      
+      const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+      modal.show();
+    }
+
+    
+
+    // Confirm delete handler
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+      if (studentToDelete !== null && yearToDelete !== null) {
+        const list = JSON.parse(localStorage.getItem(`${yearToDelete}-list`) || '[]');
+        list.splice(studentToDelete, 1);
+        localStorage.setItem(`${yearToDelete}-list`, JSON.stringify(list));
+        renderList(yearToDelete);
+        updateStats(yearToDelete);
+        showAlert("Student removed successfully!", "info");
+        
+        // Reset variables
+        studentToDelete = null;
+        yearToDelete = null;
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+      }
+    });
+
+    function saveAttendanceData(year) {
+  const date = document.getElementById(`${year}-date`).value;
+  if (!date) {
+    showAlert("Please select a date", "warning");
+    return;
+  }
+
+  const cards = document.querySelectorAll(`#${year}-students .student-card`);
+  const list = JSON.parse(localStorage.getItem(`${year}-list`) || '[]');
+  
+  const attendanceData = [];
+  cards.forEach((card, index) => {
+    let status = 'not_marked';
+    if (card.classList.contains('present')) status = 'present';
+    else if (card.classList.contains('absent')) status = 'absent';
+    
+    attendanceData.push({
+      name: list[index].name,
+      usn: list[index].usn,
+      status: status
+    });
+  });
+
+  // Save attendance data with date as key
+  const dateKey = `${year}-attendance-${date}`;
+  localStorage.setItem(dateKey, JSON.stringify(attendanceData));
+  
+  // Also save to a master list of dates for this year
+  const savedDates = JSON.parse(localStorage.getItem(`${year}-saved-dates`) || '[]');
+  if (!savedDates.includes(date)) {
+    savedDates.push(date);
+    savedDates.sort();
+    localStorage.setItem(`${year}-saved-dates`, JSON.stringify(savedDates));
+  }
+  
+  showAlert(`Attendance saved for ${date}`, "success");
+  updateDateAnalysis(year);
+}
+
+  function markAll(year, status) {
+    const cards = document.querySelectorAll(`#${year}-students .student-card`);
+    cards.forEach(card => {
+      card.classList.remove('present', 'absent', 'neutral');
+      const badge = card.querySelector('.badge');
+      switch (status) {
+        case 'present':
+          card.classList.add('present');
+          badge.className = 'badge bg-success';
+          badge.textContent = 'Present';
+          break;
+        case 'absent':
+          card.classList.add('absent');
+          badge.className = 'badge bg-danger';
+          badge.textContent = 'Absent';
+          break;
+        default:
+          card.classList.add('neutral');
+          badge.className = 'badge bg-secondary';
+          badge.textContent = 'Not Marked';
+      }
+    });
+    updateStats(year);
+  }
+
+
+// Load attendance data for a specific date
+function loadAttendanceData(year, date) {
+  const dateKey = `${year}-attendance-${date}`;
+  const attendanceData = JSON.parse(localStorage.getItem(dateKey) || '[]');
+  
+  if (attendanceData.length === 0) {
+    // Reset all cards to neutral if no data found
+    const cards = document.querySelectorAll(`#${year}-students .student-card`);
+    cards.forEach(card => {
+      card.classList.remove('present', 'absent');
+      card.classList.add('neutral');
+      const badge = card.querySelector('.badge');
+      badge.className = 'badge bg-secondary';
+      badge.textContent = 'Not Marked';
+    });
+    updateStats(year);
+    return;
+  }
+
+  const cards = document.querySelectorAll(`#${year}-students .student-card`);
+  const currentList = JSON.parse(localStorage.getItem(`${year}-list`) || '[]');
+  
+  cards.forEach((card, index) => {
+    const currentStudent = currentList[index];
+    const savedStudent = attendanceData.find(s => s.usn === currentStudent.usn);
+    
+    if (savedStudent) {
+      // Remove all status classes
+      card.classList.remove('present', 'absent', 'neutral');
+      const badge = card.querySelector('.badge');
+      
+      switch (savedStudent.status) {
+        case 'present':
+          card.classList.add('present');
+          badge.className = 'badge bg-success';
+          badge.textContent = 'Present';
+          break;
+        case 'absent':
+          card.classList.add('absent');
+          badge.className = 'badge bg-danger';
+          badge.textContent = 'Absent';
+          break;
+        default:
+          card.classList.add('neutral');
+          badge.className = 'badge bg-secondary';
+          badge.textContent = 'Not Marked';
+      }
+    } else {
+      // Student not found in saved data, set to neutral
+      card.classList.remove('present', 'absent');
+      card.classList.add('neutral');
+      const badge = card.querySelector('.badge');
+      badge.className = 'badge bg-secondary';
+      badge.textContent = 'Not Marked';
+    }
+  });
+  
+  updateStats(year);
+  updateDateAnalysis(year);
+}
+
+// Update date analysis display
+function updateDateAnalysis(year) {
+  const date = document.getElementById(`${year}-date`).value;
+  if (!date) return;
+  
+  const dateKey = `${year}-attendance-${date}`;
+  const attendanceData = JSON.parse(localStorage.getItem(dateKey) || '[]');
+  
+  let analysisHtml = '';
+  if (attendanceData.length > 0) {
+    const present = attendanceData.filter(s => s.status === 'present').length;
+    const absent = attendanceData.filter(s => s.status === 'absent').length;
+    const notMarked = attendanceData.filter(s => s.status === 'not_marked').length;
+    const total = attendanceData.length;
+    const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+    
+    analysisHtml = `
+      <div class="alert alert-info mt-2">
+        <h6><i class="bi bi-calendar-check me-2"></i>Analysis for ${date}:</h6>
+        <div class="row text-center">
+          <div class="col-3"><strong>${total}</strong><br><small>Total</small></div>
+          <div class="col-3 text-success"><strong>${present}</strong><br><small>Present</small></div>
+          <div class="col-3 text-danger"><strong>${absent}</strong><br><small>Absent</small></div>
+          <div class="col-3 text-warning"><strong>${percentage}%</strong><br><small>Attendance</small></div>
+        </div>
+      </div>
+    `;
+  } else {
+    analysisHtml = `
+      <div class="alert alert-warning mt-2">
+        <i class="bi bi-exclamation-triangle me-2"></i>No attendance data saved for ${date}
+      </div>
+    `;
+  }
+  
+  // Update or create analysis container
+  let analysisContainer = document.getElementById(`${year}-date-analysis`);
+  if (!analysisContainer) {
+    analysisContainer = document.createElement('div');
+    analysisContainer.id = `${year}-date-analysis`;
+    document.getElementById(`${year}-date`).parentNode.appendChild(analysisContainer);
+  }
+  analysisContainer.innerHTML = analysisHtml;
+}
+
+// Show saved dates dropdown
+function showSavedDates(year) {
+  const savedDates = JSON.parse(localStorage.getItem(`${year}-saved-dates`) || '[]');
+  
+  if (savedDates.length === 0) {
+    showAlert("No saved attendance data found", "info");
+    return;
+  }
+  
+  let optionsHtml = '<option value="">Select a saved date...</option>';
+  savedDates.forEach(date => {
+    optionsHtml += `<option value="${date}">${date}</option>`;
+  });
+  
+  // Create modal for date selection
+ const modalHtml = `
+    <div class="modal fade" id="dateSelectionModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Load Saved Attendance</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <label class="form-label">Select Date:</label>
+            <select class="form-control" id="savedDateSelect">
+              ${optionsHtml}
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="loadSelectedDate('${year}')">Load</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+   const existingModal = document.getElementById('dateSelectionModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  const modal = new bootstrap.Modal(document.getElementById('dateSelectionModal'));
+  modal.show();
+}
+// Load selected date from modal
+function loadSelectedDate(year) {
+  const selectedDate = document.getElementById('savedDateSelect').value;
+  if (!selectedDate) {
+    showAlert("Please select a date", "warning");
+    return;
+  }
+  
+  document.getElementById(`${year}-date`).value = selectedDate;
+  loadAttendanceData(year, selectedDate);
+  bootstrap.Modal.getInstance(document.getElementById('dateSelectionModal')).hide();
+  showAlert(`Loaded attendance data for ${selectedDate}`, "success");
+}
+
+// Delete saved attendance data
+function deleteAttendanceData(year) {
+  const date = document.getElementById(`${year}-date`).value;
+  if (!date) {
+    showAlert("Please select a date", "warning");
+    return;
+  }
+  
+  const dateKey = `${year}-attendance-${date}`;
+  const attendanceData = localStorage.getItem(dateKey);
+  
+  if (!attendanceData) {
+    showAlert("No attendance data found for this date", "warning");
+    return;
+  }
+  
+  if (confirm(`Are you sure you want to delete attendance data for ${date}?`)) {
+    localStorage.removeItem(dateKey);
+    
+    // Remove from saved dates list
+    const savedDates = JSON.parse(localStorage.getItem(`${year}-saved-dates`) || '[]');
+    const updatedDates = savedDates.filter(d => d !== date);
+    localStorage.setItem(`${year}-saved-dates`, JSON.stringify(updatedDates));
+    
+    // Reset current view
+    loadAttendanceData(year, date);
+    showAlert(`Attendance data deleted for ${date}`, "success");
+  }
+}
+
+// Enhanced date change handler
+function onDateChange(year) {
+  const date = document.getElementById(`${year}-date`).value;
+  if (date) {
+    loadAttendanceData(year, date);
+  }
+}
+
+// Add these HTML elements to your form sections (add after the date input):
+
+// For BCA 1st Year - add this HTML after the date input div:
+const bca1DateControls = `
+  <div class="col-md-2 mb-3 d-flex align-items-end">
+    <button type="button" class="btn btn-success w-100 mb-1" onclick="saveAttendanceData('bca1')" title="Save current attendance">
+      <i class="bi bi-floppy me-1"></i>Save
+    </button>
+  </div>
+  <div class="col-md-2 mb-3 d-flex align-items-end">
+    <button type="button" class="btn btn-info w-100 mb-1" onclick="showSavedDates('bca1')" title="Load saved attendance">
+      <i class="bi bi-folder-open me-1"></i>Load
+    </button>
+  </div>
+  <div class="col-md-1 mb-3 d-flex align-items-end">
+    <button type="button" class="btn btn-danger w-100 mb-1" onclick="deleteAttendanceData('bca1')" title="Delete saved data">
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+`;
+
+// For BCA 2nd Year - add this HTML after the date input div:
+const bca2DateControls = `
+  <div class="col-md-2 mb-3 d-flex align-items-end">
+    <button type="button" class="btn btn-success w-100 mb-1" onclick="saveAttendanceData('bca2')" title="Save current attendance">
+      <i class="bi bi-floppy me-1"></i>Save
+    </button>
+  </div>
+  <div class="col-md-2 mb-3 d-flex align-items-end">
+    <button type="button" class="btn btn-info w-100 mb-1" onclick="showSavedDates('bca2')" title="Load saved attendance">
+      <i class="bi bi-folder-open me-1"></i>Load
+    </button>
+  </div>
+  <div class="col-md-1 mb-3 d-flex align-items-end">
+    <button type="button" class="btn btn-danger w-100 mb-1" onclick="deleteAttendanceData('bca2')" title="Delete saved data">
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+`;
+
+
+    function renderList(year) {
+      const list = JSON.parse(localStorage.getItem(`${year}-list`) || '[]');
+      const container = document.getElementById(`${year}-students`);
+      container.innerHTML = '';
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="col-12 text-center">
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle me-2"></i>
+              No students added yet. Use the form above to add students.
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      list.forEach((student, index) => {
+        const div = document.createElement('div');
+        div.className = 'col-lg-3 col-md-4 col-sm-6 mb-3';
+        
+        div.innerHTML = `
+          <div class="card student-card neutral h-100" data-index="${index}">
+            <div class="card-body text-center position-relative">
+              <button class="remove-btn" onclick="removeStudent('${year}', ${index})" title="Remove Student">
+                <i class="bi bi-x"></i>
+              </button>
+              <div class="mb-2">
+                <strong>${index + 1}. ${student.name}</strong>
+              </div>
+              <div class="text-muted small">
+                <i class="bi bi-person-badge me-1"></i>${student.usn}
+              </div>
+              <div class="mt-2">
+                <span class="badge bg-secondary">Not Marked</span>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        const card = div.querySelector('.student-card');
+        card.addEventListener('click', function(e) {
+          if (!e.target.closest('.remove-btn')) {
+            toggleAttendance(card, year);
+          }
+        });
+        
+        container.appendChild(div);
+      });
+    }
+
+    function toggleAttendance(card, year) {
+      const badge = card.querySelector('.badge');
+      
+      if (card.classList.contains('neutral')) {
+        card.classList.remove('neutral');
+        card.classList.add('present');
+        badge.className = 'badge bg-success';
+        badge.textContent = 'Present';
+      } else if (card.classList.contains('present')) {
+        card.classList.remove('present');
+        card.classList.add('absent');
+        badge.className = 'badge bg-danger';
+        badge.textContent = 'Absent';
+      } else {
+        card.classList.remove('absent');
+        card.classList.add('neutral');
+        badge.className = 'badge bg-secondary';
+        badge.textContent = 'Not Marked';
+      }
+      
+      updateStats(year);
+    }
+
+    function updateStats(year) {
+      const cards = document.querySelectorAll(`#${year}-students .student-card`);
+      const total = cards.length;
+      let present = 0;
+      let absent = 0;
+      
+      cards.forEach(card => {
+        if (card.classList.contains('present')) present++;
+        else if (card.classList.contains('absent')) absent++;
+      });
+      
+      const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+      
+      document.getElementById(`${year}-total`).textContent = total;
+      document.getElementById(`${year}-present`).textContent = present;
+      document.getElementById(`${year}-absent`).textContent = absent;
+      document.getElementById(`${year}-percentage`).textContent = percentage + '%';
+    }
+
+    function exportExcel(year) {
+      const date = document.getElementById(`${year}-date`).value;
+      if (!date) {
+        showAlert("Please select a date before exporting", "warning");
+        return;
+      }
+
+      const list = JSON.parse(localStorage.getItem(`${year}-list`) || '[]');
+      if (list.length === 0) {
+        showAlert("No students to export", "warning");
+        return;
+      }
+
+      const cards = document.querySelectorAll(`#${year}-students .student-card`);
+      const currentTime = new Date().toLocaleString();
+      
+      // Create header row
+      const rows = [
+        ["KLE Society's BCA College, Gangavathi"],
+        [`Attendance Sheet - ${year.toUpperCase()}`],
+        [`Date: ${date}`, `Time: ${currentTime}`],
+        [],
+        ["Sl.No", "Student Name", "USN", "Attendance Status", "Remarks"]
+      ];
+
+      // Add student data
+      cards.forEach((card, index) => {
+        let status = 'Not Marked';
+        if (card.classList.contains('present')) status = 'Present';
+        else if (card.classList.contains('absent')) status = 'Absent';
+        
+        rows.push([
+          index + 1,
+          list[index].name,
+          list[index].usn,
+          status,
+          ''
+        ]);
+      });
+
+      // Add summary
+      const present = Array.from(cards).filter(card => card.classList.contains('present')).length;
+      const absent = Array.from(cards).filter(card => card.classList.contains('absent')).length;
+      const percentage = list.length > 0 ? Math.round((present / list.length) * 100) : 0;
+      
+      rows.push([]);
+      rows.push(["Summary"]);
+      rows.push(["Total Students", list.length]);
+      rows.push(["Present", present]);
+      rows.push(["Absent", absent]);
+      rows.push(["Attendance Percentage", percentage + '%']);
+
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, `${year.toUpperCase()}_Attendance`);
+      XLSX.writeFile(wb, `${year.toUpperCase()}_Attendance_${date}.xlsx`);
+      
+      showAlert("Excel file downloaded successfully!", "success");
+    }
+
+    function exportPDF(year) {
+      const date = document.getElementById(`${year}-date`).value;
+      if (!date) {
+        showAlert("Please select a date before exporting", "warning");
+        return;
+      }
+
+      const list = JSON.parse(localStorage.getItem(`${year}-list`) || '[]');
+      if (list.length === 0) {
+        showAlert("No students to export", "warning");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(16);
+      doc.text("KLE Society's BCA College, Gangavathi", 20, 20);
+      doc.setFontSize(14);
+      doc.text(`Attendance Sheet - ${year.toUpperCase()}`, 20, 30);
+      doc.setFontSize(12);
+      doc.text(`Date: ${date}`, 20, 40);
+      doc.text(`Time: ${new Date().toLocaleString()}`, 120, 40);
+      
+      // Student data
+      const cards = document.querySelectorAll(`#${year}-students .student-card`);
+      let y = 55;
+      
+      doc.text("Sl.No", 20, y);
+      doc.text("Name", 40, y);
+      doc.text("USN", 120, y);
+      doc.text("Status", 160, y);
+      y += 5;
+      
+      doc.line(20, y, 190, y);
+      y += 10;
+      
+      cards.forEach((card, index) => {
+        let status = 'Not Marked';
+        if (card.classList.contains('present')) status = 'Present';
+        else if (card.classList.contains('absent')) status = 'Absent';
+        
+        doc.text((index + 1).toString(), 20, y);
+        doc.text(list[index].name, 40, y);
+        doc.text(list[index].usn, 120, y);
+        doc.text(status, 160, y);
+        y += 8;
+        
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+      });
+      
+      // Summary
+      const present = Array.from(cards).filter(card => card.classList.contains('present')).length;
+      const absent = Array.from(cards).filter(card => card.classList.contains('absent')).length;
+      const percentage = list.length > 0 ? Math.round((present / list.length) * 100) : 0;
+      
+      y += 10;
+      doc.line(20, y, 190, y);
+      y += 10;
+      doc.text("Summary:", 20, y);
+      y += 8;
+      doc.text(`Total Students: ${list.length}`, 20, y);
+      y += 8;
+      doc.text(`Present: ${present}`, 20, y);
+      y += 8;
+      doc.text(`Absent: ${absent}`, 20, y);
+      y += 8;
+      doc.text(`Attendance Percentage: ${percentage}%`, 20, y);
+      
+      doc.save(`${year.toUpperCase()}_Attendance_${date}.pdf`);
+
+      showAlert("PDF file downloaded successfully!", "success");
+    }
+
+    function showAlert(message, type) {
+      // Create and show Bootstrap alert
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+      alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+      alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      
+      document.body.appendChild(alertDiv);
+      
+      // Auto-remove after 3 seconds
+      setTimeout(() => {
+        if (alertDiv.parentNode) {
+          alertDiv.parentNode.removeChild(alertDiv);
+        }
+      }, 3000);
+    }
+
+    // Initialize on page load
+    window.addEventListener('load', function() {
+      renderList('bca1');
+      renderList('bca2');
+      updateStats('bca1');
+      updateStats('bca2');
+      
+      // Set today's date as default
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('bca1-date').value = today;
+      document.getElementById('bca2-date').value = today;
+    });
+
+    // Add Enter key support for student addition
+    ['bca1', 'bca2'].forEach(year => {
+      document.getElementById(`${year}-name`).addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          document.getElementById(`${year}-usn`).focus();
+        }
+      });
+      
+      document.getElementById(`${year}-usn`).addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          addStudent(year);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
